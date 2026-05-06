@@ -1,108 +1,164 @@
-# CarSight AI
+# Used Car Pricing (CarSight AI)
 
-CarSight AI is a decision-support tool for used car pricing. The app combines a market-based price prediction model with a damage-text analysis layer so the user gets a price range, a damage impact summary, and a plain-language explanation instead of a single number.
+This repository contains my IST 440 capstone project, CarSight AI. The goal of the project is to give buyers a better way to judge used car prices when a seller description is vague, incomplete, or written to downplay damage.
 
-## What the app does
+Most pricing tools look at structured fields like year, mileage, and model. This project adds an NLP layer so the app can also read damage-related text such as "engine knock," "small dent," or "rear bumper cracked" and fold that into the estimate.
 
-- predicts a base used-car value from structured vehicle features
-- reads the seller's damage description and extracts issue categories
-- estimates severity and price impact from the text
-- returns an adjusted price range instead of a single price
-- includes a simple chatbot for explainability and negotiation guidance
+Instead of returning one number, the app gives:
 
-## Project structure
+- a fair price range
+- a deal meter
+- detected damage categories and estimated impact
+- a short explanation of why the estimate moved
+- a chatbot sidebar for follow-up questions
 
-- `backend/` - FastAPI API, model training script, NLP logic, and tests
-- `frontend/` - Vite TypeScript dashboard
-- `models/` - trained model artifact and metadata
-- `data/` - cached training data and processed preview files
-- `assets/` - visual assets used in the interface
-- `docs/` - final presentation, planning files, and report references
+## Project summary
 
-## Dataset and model
-
-The pricing model was trained from the public Kaggle dataset `andreinovikov/used-cars-dataset`.
-
-Saved evaluation metrics from the latest training run:
-
-- MAE: `$2,939.93`
-- RMSE: `$4,966.22`
-- MAPE: `10.02%`
-- training rows: `80,000`
-
-The final model is a weighted hybrid blend:
+The final version uses a hybrid pricing model:
 
 - `60%` TF-IDF + Ridge regression over combined vehicle specification text
 - `40%` HistGradientBoosting over structured vehicle features
 
-This was chosen after comparing four candidates:
+The damage description is handled by a separate NLP layer that:
 
-1. original Ridge baseline using engine text only
-2. expanded Ridge NLP model using combined vehicle spec text
-3. structured HistGradientBoosting model
-4. weighted hybrid blend
+- cleans the text
+- looks for damage-related keywords
+- groups issues into categories such as body, engine, interior, tire, or electrical
+- estimates severity
+- applies an interpretable price adjustment
 
-The hybrid model gave the lowest held-out error, so it became the final pricing model. Damage text is handled separately through a rule-based NLP layer so the output stays interpretable and easy to explain in the dashboard.
+Latest saved model metrics:
 
-## How to run the project
+- MAE: `$2,939.93`
+- RMSE: `$4,966.22`
+- MAPE: `10.02%`
 
-### 1. Backend
+## Repo layout
 
-From `backend/`:
-
-```powershell
-$env:PYTHONPATH="C:\Users\laksh\OneDrive\Desktop\DS440\CarSight_App\backend"
-C:\Users\laksh\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```text
+used-car-pricing/
+|-- assets/                  interface images
+|-- backend/                 FastAPI app, training code, tests
+|-- data/                    processed preview data
+|-- docs/                    presentation, planning files, project references
+|-- frontend/                Vite + TypeScript dashboard
+|-- models/                  saved model artifact and metadata
+|-- .gitignore
+`-- README.md
 ```
 
-### 2. Frontend
+## What you need before you start
 
-From `frontend/`:
+- Python 3.10 or newer
+- Node.js 18 or newer
+- npm
+
+This app was built and tested on Windows with PowerShell, so the commands below use that format.
+
+## How to run the app locally
+
+The trained model file is already included in the repo, so you do not need to retrain anything before the first run.
+
+### 1. Clone the repository
 
 ```powershell
+git clone https://github.com/laksh10x/used-car-pricing.git
+cd used-car-pricing
+```
+
+### 2. Set up the backend
+
+Create and activate a virtual environment:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+```
+
+Install the backend requirements:
+
+```powershell
+pip install -r backend/requirements.txt
+```
+
+Start the FastAPI server from the repo root:
+
+```powershell
+$env:PYTHONPATH = "backend"
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+If the backend started correctly, this health route should work in the browser:
+
+```text
+http://127.0.0.1:8000/health
+```
+
+### 3. Set up the frontend
+
+Open a second terminal in the same project folder:
+
+```powershell
+cd used-car-pricing
+cd frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 4173
 ```
 
-Then open:
+### 4. Open the app
 
-- frontend: `http://127.0.0.1:4173`
-- backend health check: `http://127.0.0.1:8000/health`
+Once both servers are running, open:
+
+```text
+http://127.0.0.1:4173
+```
+
+From there, enter the vehicle details, paste the seller's wording into the damage description box, and run the estimate.
 
 ## How to retrain the model
 
-From `backend/`:
+Retraining is optional. The repo already includes a saved model in `models/`.
+
+If you want to retrain it from the Kaggle dataset used for the project:
+
+1. Make sure your Kaggle access is set up on your machine.
+2. Activate the same Python environment used for the backend.
+3. Run:
 
 ```powershell
-C:\Users\laksh\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe train_model.py
+python backend/train_model.py
 ```
 
-This script downloads the Kaggle dataset, cleans the data, trains the regression pipeline, evaluates the model, and saves new artifacts to `models/`.
+That script downloads the dataset, cleans the data, compares model candidates, and saves the updated artifacts back into `models/`.
 
 ## Testing
 
 Backend tests:
 
 ```powershell
-$env:PYTHONPATH="C:\Users\laksh\OneDrive\Desktop\DS440\CarSight_App\backend"
-C:\Users\laksh\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe -m pytest -q
+$env:PYTHONPATH = "backend"
+python -m pytest backend/tests -q
 ```
 
 Frontend build check:
 
 ```powershell
+cd frontend
 npm run build
 ```
 
-## Notes
+## Included project files
 
-- The app is a working capstone prototype, not a production marketplace system.
-- The price range is meant to support decision-making, not replace a mechanic inspection.
-- The NLP layer is intentionally simple and interpretable to match the scope of the project.
-
-## Included project documents
+The `docs/` folder includes the main capstone deliverables and planning material:
 
 - final presentation deck
+- updated Gantt chart
+- critical path analysis
 - project brief
 - results and conclusion reference PDF
-- updated Gantt chart and critical path analysis
+
+## Notes
+
+- This is a capstone prototype, not a production marketplace app.
+- The estimate is meant to support decision-making, not replace an inspection or mechanic review.
+- The damage NLP layer is intentionally interpretable so the reasoning is easier to explain in the dashboard.
