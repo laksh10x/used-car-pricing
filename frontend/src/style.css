@@ -508,11 +508,11 @@ button:disabled {
   height: 430px;
   background: conic-gradient(
     from 270deg,
-    #c93131 0deg 38deg,
-    #e56635 38deg 74deg,
+    #3e9b4a 0deg 38deg,
+    #7ac356 38deg 74deg,
     #f3bf4f 74deg 108deg,
-    #7ac356 108deg 144deg,
-    #3e9b4a 144deg 180deg,
+    #e56635 108deg 144deg,
+    #c93131 144deg 180deg,
     transparent 180deg 360deg
   );
   filter: drop-shadow(0 18px 24px rgba(17, 24, 39, 0.12));
