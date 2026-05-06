@@ -146,19 +146,3 @@ Frontend build check:
 cd frontend
 npm run build
 ```
-
-## Included project files
-
-The `docs/` folder includes the main capstone deliverables and planning material:
-
-- final presentation deck
-- updated Gantt chart
-- critical path analysis
-- project brief
-- results and conclusion reference PDF
-
-## Notes
-
-- This is a capstone prototype, not a production marketplace app.
-- The estimate is meant to support decision-making, not replace an inspection or mechanic review.
-- The damage NLP layer is intentionally interpretable so the reasoning is easier to explain in the dashboard.
